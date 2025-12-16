@@ -11,7 +11,7 @@ import {
   where,
 } from "firebase/firestore";
 import { db } from "@/lib/firebase";
-import { Task, TaskStatus } from "@/types/task";
+import { Task, TaskPriority, TaskStatus } from "@/types/task";
 
 export function listenTasks(uid: string, cb: (tasks: Task[]) => void) {
   const q = query(
@@ -29,13 +29,22 @@ export function listenTasks(uid: string, cb: (tasks: Task[]) => void) {
   });
 }
 
-export async function addTask(uid: string, title: string) {
+export async function addTask(
+  uid: string,
+  title: string,
+  priority: TaskPriority = "medium"
+) {
   await addDoc(collection(db, "tasks"), {
     uid,
     title,
     status: "todo",
+    priority,
     createdAt: serverTimestamp(),
   });
+}
+
+export async function updateTask(taskId: string, data: Partial<Task>) {
+  await updateDoc(doc(db, "tasks", taskId), data);
 }
 
 export async function updateTaskStatus(taskId: string, status: TaskStatus) {

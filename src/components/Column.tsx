@@ -1,5 +1,4 @@
-"use client";
-
+import { useDroppable } from "@dnd-kit/core";
 import {
   SortableContext,
   verticalListSortingStrategy,
@@ -16,15 +15,22 @@ export function Column({
   status: TaskStatus;
   tasks: Task[];
 }) {
+  const { setNodeRef } = useDroppable({
+    id: status,
+  });
+
   return (
-    <div className="flex flex-col gap-3 rounded-2xl border p-4 w-full">
+    <div
+      ref={setNodeRef}
+      className="flex flex-col gap-3 rounded-2xl border p-4 w-full h-full"
+    >
       <h3 className="font-semibold">{title}</h3>
 
       <SortableContext
         items={tasks.map((t) => t.id)}
         strategy={verticalListSortingStrategy}
       >
-        <div className="flex flex-col gap-2 min-h-[60px]">
+        <div className="flex flex-col gap-2 min-h-[100px] flex-1">
           {tasks.map((task) => (
             <TaskCard key={task.id} task={task} />
           ))}

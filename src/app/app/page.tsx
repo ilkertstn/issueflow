@@ -5,31 +5,36 @@ import { useRouter } from "next/navigation";
 import { signOut } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 import { useAuth } from "@/hooks/useAuth";
-
-import {
-  addTask,
-  deleteTask,
-  listenTasks,
-  updateTaskStatus,
-} from "@/lib/tasks";
-import { Task, TaskStatus } from "@/types/task";
+import { addTask, listenTasks, updateTaskStatus } from "@/lib/tasks";
+import { Task, TaskPriority, TaskStatus } from "@/types/task";
 import {
   DndContext,
   DragEndEvent,
+  DragOverlay,
   PointerSensor,
   useSensor,
   useSensors,
 } from "@dnd-kit/core";
 import { Column } from "@/components/Column";
+import { TaskCard } from "@/components/TaskCard";
+import { usePresence } from "@/hooks/usePresence";
 
 export default function AppPage() {
   const router = useRouter();
   const { user, loading } = useAuth();
 
   const [title, setTitle] = useState("");
+  const [priority, setPriority] = useState<TaskPriority>("medium");
   const [tasks, setTasks] = useState<Task[]>([]);
+  const [activeId, setActiveId] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
-  const sensors = useSensors(useSensor(PointerSensor));
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 5,
+      },
+    })
+  );
   const todo = tasks.filter((t) => t.status === "todo");
   const doing = tasks.filter((t) => t.status === "doing");
   const done = tasks.filter((t) => t.status === "done");
@@ -50,6 +55,10 @@ export default function AppPage() {
     return c;
   }, [tasks]);
 
+  const { onlineCount } = usePresence(
+    user ? { uid: user.uid, email: user.email } : null
+  );
+
   if (loading) return <div className="p-6">Loading...</div>;
   if (!user) return null;
 
@@ -58,7 +67,9 @@ export default function AppPage() {
       <div className="flex items-center justify-between gap-4">
         <div>
           <h1 className="text-xl font-semibold">TaskBoard</h1>
-          <p className="text-sm opacity-70">Giriş yapan: {user.email}</p>
+          <p className="text-sm opacity-70">
+            Giriş yapan: {user.email} • 🟢 Online: {onlineCount}
+          </p>{" "}
         </div>
 
         <button
@@ -85,40 +96,66 @@ export default function AppPage() {
       </div>
 
       <form
-        className="mt-6 flex gap-2"
+        className="mt-6 flex flex-col gap-2"
         onSubmit={async (e) => {
           e.preventDefault();
           if (!title.trim()) return;
           setSaving(true);
           try {
-            await addTask(user.uid, title.trim());
+            await addTask(user.uid, title.trim(), priority);
             setTitle("");
+            setPriority("medium");
           } finally {
             setSaving(false);
           }
         }}
       >
-        <input
-          className="flex-1 rounded-xl border p-3"
-          placeholder="Yeni task..."
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-        />
-        <button className="rounded-xl border px-4" disabled={saving}>
-          {saving ? "..." : "Ekle"}
-        </button>
+        <div className="flex gap-2">
+          <input
+            className="flex-1 rounded-xl border p-3"
+            placeholder="Yeni task..."
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+          />
+          <select
+            className="rounded-xl border p-3 bg-transparent"
+            value={priority}
+            onChange={(e) => setPriority(e.target.value as TaskPriority)}
+          >
+            <option value="low">Low</option>
+            <option value="medium">Medium</option>
+            <option value="high">High</option>
+          </select>
+          <button className="rounded-xl border px-4" disabled={saving}>
+            {saving ? "..." : "Ekle"}
+          </button>
+        </div>
       </form>
 
       <DndContext
         sensors={sensors}
+        onDragStart={(event) => {
+          setActiveId(event.active.id as string);
+        }}
         onDragEnd={async (event: DragEndEvent) => {
           const { active, over } = event;
+          setActiveId(null);
           if (!over) return;
 
           const draggedTask = tasks.find((t) => t.id === active.id);
           if (!draggedTask) return;
 
-          const targetStatus = over.id as TaskStatus;
+          // If dropped on a column (status)
+          let targetStatus = over.id as TaskStatus;
+
+          // If dropped on another task, find that task's status
+          if (!["todo", "doing", "done"].includes(targetStatus)) {
+            const overTask = tasks.find((t) => t.id === over.id);
+            if (overTask) {
+              targetStatus = overTask.status;
+            }
+          }
+
           if (draggedTask.status === targetStatus) return;
 
           await updateTaskStatus(draggedTask.id, targetStatus);
@@ -135,6 +172,12 @@ export default function AppPage() {
             <Column title="Done" status="done" tasks={done} />
           </div>
         </div>
+
+        <DragOverlay>
+          {activeId ? (
+            <TaskCard task={tasks.find((t) => t.id === activeId)!} />
+          ) : null}
+        </DragOverlay>
       </DndContext>
     </main>
   );
