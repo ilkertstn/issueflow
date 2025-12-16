@@ -15,6 +15,13 @@ export function Column({
   status: TaskStatus;
   tasks: Task[];
 }) {
+  /* Define status-specific accents using a helper or map */
+  const statusStyles: Record<TaskStatus, string> = {
+    todo: "border-t-slate-500 bg-slate-800/20",
+    doing: "border-t-blue-500 bg-blue-900/10",
+    done: "border-t-emerald-500 bg-emerald-900/10",
+  };
+
   const { setNodeRef } = useDroppable({
     id: status,
   });
@@ -22,9 +29,14 @@ export function Column({
   return (
     <div
       ref={setNodeRef}
-      className="flex flex-col gap-3 rounded-2xl border p-4 w-full h-full"
+      className={`flex flex-col gap-3 rounded-xl border border-white/5 p-4 w-full h-full border-t-2 shadow-sm transition-all ${statusStyles[status]}`}
     >
-      <h3 className="font-semibold">{title}</h3>
+      <div className="flex items-center justify-between">
+        <h3 className="font-semibold text-lg">{title}</h3>
+        <span className="text-xs font-mono opacity-50 bg-black/20 px-2 py-1 rounded">
+          {tasks.length}
+        </span>
+      </div>
 
       <SortableContext
         items={tasks.map((t) => t.id)}

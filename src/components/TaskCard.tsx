@@ -122,7 +122,7 @@ export function TaskCard({ task }: { task: Task }) {
         style={style}
         {...attributes}
         {...listeners}
-        className="group rounded-xl border bg-black p-4 cursor-grab active:cursor-grabbing hover:border-neutral-700 transition-all relative"
+        className="group rounded-lg border border-slate-700/50 bg-slate-900 p-4 cursor-grab active:cursor-grabbing hover:border-slate-600 hover:bg-slate-800 transition-all relative shadow-sm"
       >
         <div className="flex justify-between items-start gap-2">
           <p className="font-medium break-words">{task.title}</p>

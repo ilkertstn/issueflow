@@ -51,7 +51,11 @@ export default function AppPage() {
 
   const counts = useMemo(() => {
     const c: Record<TaskStatus, number> = { todo: 0, doing: 0, done: 0 };
-    for (const t of tasks) c[t.status]++;
+    for (const t of tasks) {
+      if (Object.prototype.hasOwnProperty.call(c, t.status)) {
+        c[t.status]++;
+      }
+    }
     return c;
   }, [tasks]);
 
@@ -63,74 +67,100 @@ export default function AppPage() {
   if (!user) return null;
 
   return (
-    <main className="min-h-screen p-6">
-      <div className="flex items-center justify-between gap-4">
-        <div>
-          <h1 className="text-xl font-semibold">TaskBoard</h1>
-          <p className="text-sm opacity-70">
-            Giriş yapan: {user.email} • 🟢 Online: {onlineCount}
-          </p>{" "}
-        </div>
+    <main className="min-h-screen p-6 max-w-7xl mx-auto">
+      {/* Header & Controls Panel */}
+      <div className="rounded-3xl border border-white/10 bg-white/5 backdrop-blur-xl p-6 mb-8 shadow-2xl">
+        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+          <div>
+            <h1 className="text-3xl font-bold bg-gradient-to-r from-white to-neutral-400 bg-clip-text text-transparent">
+              IssueFlow
+            </h1>
+            <div className="flex items-center gap-2 mt-2 text-sm text-neutral-400">
+              <span>{user.email}</span>
+              <span className="w-1 h-1 rounded-full bg-neutral-600" />
+              <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-green-500/10 border border-green-500/20">
+                <span className="relative flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+                </span>
+                <span className="text-green-400 font-medium">
+                  {onlineCount} Online
+                </span>
+              </div>
+            </div>
+          </div>
 
-        <button
-          className="rounded-xl border px-4 py-2"
-          onClick={async () => {
-            await signOut(auth);
-            router.push("/login");
-          }}
-        >
-          Çıkış
-        </button>
-      </div>
-
-      <div className="mt-6 flex flex-wrap gap-2 text-sm">
-        <span className="rounded-full border px-3 py-1">
-          Todo: {counts.todo}
-        </span>
-        <span className="rounded-full border px-3 py-1">
-          Doing: {counts.doing}
-        </span>
-        <span className="rounded-full border px-3 py-1">
-          Done: {counts.done}
-        </span>
-      </div>
-
-      <form
-        className="mt-6 flex flex-col gap-2"
-        onSubmit={async (e) => {
-          e.preventDefault();
-          if (!title.trim()) return;
-          setSaving(true);
-          try {
-            await addTask(user.uid, title.trim(), priority);
-            setTitle("");
-            setPriority("medium");
-          } finally {
-            setSaving(false);
-          }
-        }}
-      >
-        <div className="flex gap-2">
-          <input
-            className="flex-1 rounded-xl border p-3"
-            placeholder="Yeni task..."
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-          />
-          <select
-            className="rounded-xl border p-3 bg-transparent"
-            value={priority}
-            onChange={(e) => setPriority(e.target.value as TaskPriority)}
+          <button
+            className="px-4 py-2 rounded-xl text-sm font-medium text-neutral-400 hover:text-white hover:bg-white/5 transition-colors"
+            onClick={async () => {
+              await signOut(auth);
+              router.push("/login");
+            }}
           >
-            <option value="low">Low</option>
-            <option value="medium">Medium</option>
-            <option value="high">High</option>
-          </select>
-          <button className="rounded-xl border px-4" disabled={saving}>
-            {saving ? "..." : "Ekle"}
+            Çıkış Yap
           </button>
         </div>
-      </form>
+
+        {/* Stats & Filter Bar (Visual only for now matching counts) */}
+        <div className="mt-8 flex flex-wrap gap-2">
+          {Object.entries(counts).map(([status, count]) => (
+            <div
+              key={status}
+              className="px-4 py-2 rounded-xl border border-white/5 bg-black/20 text-sm font-medium flex items-center gap-2"
+            >
+              <span className="capitalize text-neutral-400">{status}</span>
+              <span className="bg-white/10 px-2 py-0.5 rounded text-white">
+                {count}
+              </span>
+            </div>
+          ))}
+        </div>
+
+        {/* New Task Form */}
+        <form
+          className="mt-6 flex flex-col md:flex-row gap-3"
+          onSubmit={async (e) => {
+            e.preventDefault();
+            if (!title.trim()) return;
+            setSaving(true);
+            try {
+              await addTask(user.uid, title.trim(), priority);
+              setTitle("");
+              setPriority("medium");
+            } finally {
+              setSaving(false);
+            }
+          }}
+        >
+          <div className="flex-1 relative group">
+            <input
+              className="w-full h-12 rounded-xl border border-white/10 bg-black/40 px-4 text-white focus:outline-none focus:ring-2 focus:ring-violet-500/50 transition-all placeholder:text-neutral-600"
+              placeholder="Yeni bir görev oluştur..."
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+            />
+          </div>
+          
+          <div className="flex gap-2">
+            <select
+              className="h-12 rounded-xl border border-white/10 bg-black/40 px-4 text-sm text-neutral-300 focus:outline-none focus:ring-2 focus:ring-violet-500/50 cursor-pointer hover:bg-black/60 transition-colors"
+              value={priority}
+              onChange={(e) => setPriority(e.target.value as TaskPriority)}
+            >
+              <option value="low">Low Priority</option>
+              <option value="medium">Medium Priority</option>
+              <option value="high">High Priority</option>
+            </select>
+            
+            <button 
+              className="h-12 px-6 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 text-white font-medium hover:from-violet-500 hover:to-indigo-500 focus:ring-2 focus:ring-violet-500/50 transition-all shadow-lg shadow-violet-900/20 disabled:opacity-50 disabled:cursor-not-allowed"
+              disabled={saving}
+            >
+              {saving ? "Ekleniyor..." : "Oluştur"}
+            </button>
+          </div>
+        </form>
+      </div>
 
       <DndContext
         sensors={sensors}
@@ -161,14 +191,14 @@ export default function AppPage() {
           await updateTaskStatus(draggedTask.id, targetStatus);
         }}
       >
-        <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div id="todo">
-            <Column title="Todo" status="todo" tasks={todo} />
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-start h-full">
+          <div id="todo" className="h-full">
+            <Column title="To Do" status="todo" tasks={todo} />
           </div>
-          <div id="doing">
-            <Column title="Doing" status="doing" tasks={doing} />
+          <div id="doing" className="h-full">
+            <Column title="In Progress" status="doing" tasks={doing} />
           </div>
-          <div id="done">
+          <div id="done" className="h-full">
             <Column title="Done" status="done" tasks={done} />
           </div>
         </div>
