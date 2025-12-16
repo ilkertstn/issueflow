@@ -1,26 +1,66 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { signOut } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 import { useAuth } from "@/hooks/useAuth";
 
+import {
+  addTask,
+  deleteTask,
+  listenTasks,
+  updateTaskStatus,
+} from "@/lib/tasks";
+import { Task, TaskStatus } from "@/types/task";
+import {
+  DndContext,
+  DragEndEvent,
+  PointerSensor,
+  useSensor,
+  useSensors,
+} from "@dnd-kit/core";
+import { Column } from "@/components/Column";
+
 export default function AppPage() {
   const router = useRouter();
   const { user, loading } = useAuth();
 
+  const [title, setTitle] = useState("");
+  const [tasks, setTasks] = useState<Task[]>([]);
+  const [saving, setSaving] = useState(false);
+  const sensors = useSensors(useSensor(PointerSensor));
+  const todo = tasks.filter((t) => t.status === "todo");
+  const doing = tasks.filter((t) => t.status === "doing");
+  const done = tasks.filter((t) => t.status === "done");
+
   useEffect(() => {
     if (!loading && !user) router.replace("/login");
   }, [loading, user, router]);
+
+  useEffect(() => {
+    if (!user) return;
+    const unsub = listenTasks(user.uid, setTasks);
+    return () => unsub();
+  }, [user]);
+
+  const counts = useMemo(() => {
+    const c: Record<TaskStatus, number> = { todo: 0, doing: 0, done: 0 };
+    for (const t of tasks) c[t.status]++;
+    return c;
+  }, [tasks]);
 
   if (loading) return <div className="p-6">Loading...</div>;
   if (!user) return null;
 
   return (
     <main className="min-h-screen p-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-xl font-semibold">TaskBoard</h1>
+      <div className="flex items-center justify-between gap-4">
+        <div>
+          <h1 className="text-xl font-semibold">TaskBoard</h1>
+          <p className="text-sm opacity-70">Giriş yapan: {user.email}</p>
+        </div>
+
         <button
           className="rounded-xl border px-4 py-2"
           onClick={async () => {
@@ -32,11 +72,70 @@ export default function AppPage() {
         </button>
       </div>
 
-      <p className="mt-4 text-sm opacity-70">Giriş yapan: {user.email}</p>
-
-      <div className="mt-8 rounded-2xl border p-6">
-        Firestore task CRUD bir sonraki adım ✅
+      <div className="mt-6 flex flex-wrap gap-2 text-sm">
+        <span className="rounded-full border px-3 py-1">
+          Todo: {counts.todo}
+        </span>
+        <span className="rounded-full border px-3 py-1">
+          Doing: {counts.doing}
+        </span>
+        <span className="rounded-full border px-3 py-1">
+          Done: {counts.done}
+        </span>
       </div>
+
+      <form
+        className="mt-6 flex gap-2"
+        onSubmit={async (e) => {
+          e.preventDefault();
+          if (!title.trim()) return;
+          setSaving(true);
+          try {
+            await addTask(user.uid, title.trim());
+            setTitle("");
+          } finally {
+            setSaving(false);
+          }
+        }}
+      >
+        <input
+          className="flex-1 rounded-xl border p-3"
+          placeholder="Yeni task..."
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+        />
+        <button className="rounded-xl border px-4" disabled={saving}>
+          {saving ? "..." : "Ekle"}
+        </button>
+      </form>
+
+      <DndContext
+        sensors={sensors}
+        onDragEnd={async (event: DragEndEvent) => {
+          const { active, over } = event;
+          if (!over) return;
+
+          const draggedTask = tasks.find((t) => t.id === active.id);
+          if (!draggedTask) return;
+
+          const targetStatus = over.id as TaskStatus;
+          if (draggedTask.status === targetStatus) return;
+
+          await updateTaskStatus(draggedTask.id, targetStatus);
+        }}
+      >
+        <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div id="todo">
+            <Column title="Todo" status="todo" tasks={todo} />
+          </div>
+          <div id="doing">
+            <Column title="Doing" status="doing" tasks={doing} />
+          </div>
+          <div id="done">
+            <Column title="Done" status="done" tasks={done} />
+          </div>
+        </div>
+      </DndContext>
     </main>
   );
 }

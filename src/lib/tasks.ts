@@ -11,7 +11,7 @@ import {
   where,
 } from "firebase/firestore";
 import { db } from "@/lib/firebase";
-import { Task, TaskStatus } from "@/types/tasks";
+import { Task, TaskStatus } from "@/types/task";
 
 export function listenTasks(uid: string, cb: (tasks: Task[]) => void) {
   const q = query(
