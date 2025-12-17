@@ -3,7 +3,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { signOut } from "firebase/auth";
-import { auth } from "@/lib/firebase";
 import { useAuth } from "@/hooks/useAuth";
 import { addTask, listenTasks, updateTaskStatus } from "@/lib/tasks";
 import { Task, TaskPriority, TaskStatus } from "@/types/task";
@@ -22,6 +21,7 @@ import { LoadingSpinner } from "@/components/LoadingSpinner";
 import { Column } from "@/components/Column";
 import { TaskCard } from "@/components/TaskCard";
 import { usePresence } from "@/hooks/usePresence";
+import { auth } from "@/lib/firebase.client";
 
 export default function AppPage() {
   const router = useRouter();

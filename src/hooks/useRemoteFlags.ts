@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { fetchAndActivate, getBoolean } from "firebase/remote-config";
-import { remoteConfig } from "@/lib/firebase";
+import { remoteConfig } from "@/lib/firebase.client";
 
 export function useRemoteFlags() {
   const [maintenance, setMaintenance] = useState(false);
