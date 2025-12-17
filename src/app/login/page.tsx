@@ -1,20 +1,29 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
 } from "firebase/auth";
 import { auth } from "@/lib/firebase";
+import { useAuth } from "@/hooks/useAuth";
 
 export default function LoginPage() {
   const router = useRouter();
+  const { user, loading: authLoading } = useAuth();
+
   const [mode, setMode] = useState<"login" | "register">("login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!authLoading && user) {
+      router.replace("/app");
+    }
+  }, [authLoading, user, router]);
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -27,17 +36,16 @@ export default function LoginPage() {
       } else {
         await createUserWithEmailAndPassword(auth, email, password);
       }
-      router.push("/app");
+      router.replace("/app");
     } catch (err: unknown) {
-      if (err instanceof Error) {
-        setError(err.message);
-      } else {
-        setError("Bir hata oluştu.");
-      }
+      if (err instanceof Error) setError(err.message);
+      else setError("Bir hata oluştu.");
     } finally {
       setLoading(false);
     }
   }
+
+  if (authLoading) return null;
 
   return (
     <main className="min-h-screen flex items-center justify-center p-6 bg-slate-950">
@@ -47,7 +55,9 @@ export default function LoginPage() {
             IssueFlow
           </h1>
           <p className="text-sm text-slate-400 mt-2">
-            {mode === "login" ? "Hesabınıza giriş yapın" : "Yeni hesap oluşturun"}
+            {mode === "login"
+              ? "Hesabınıza giriş yapın"
+              : "Yeni hesap oluşturun"}
           </p>
         </div>
 
