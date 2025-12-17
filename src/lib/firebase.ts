@@ -2,6 +2,7 @@ import { initializeApp, getApps, getApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 import { getDatabase } from "firebase/database";
+import { getRemoteConfig } from "firebase/remote-config";
 
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY!,
@@ -18,3 +19,14 @@ export const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
 export const auth = getAuth(app);
 export const db = getFirestore(app);
 export const rtdb = getDatabase(app);
+
+export const remoteConfig = getRemoteConfig(app);
+
+remoteConfig.settings = {
+  fetchTimeoutMillis: 60_000,
+  minimumFetchIntervalMillis: 0,
+};
+
+remoteConfig.defaultConfig = {
+  maintenance_mode: false,
+};

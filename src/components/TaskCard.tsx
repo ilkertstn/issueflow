@@ -14,8 +14,6 @@ const priorityColors: Record<TaskPriority, string> = {
 
 import { Modal } from "./Modal";
 
-// ... (existing helper function / imports if not duplicated)
-
 export function TaskCard({ task }: { task: Task }) {
   const [isEditing, setIsEditing] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
@@ -63,11 +61,6 @@ export function TaskCard({ task }: { task: Task }) {
       />
     );
   }
-
-  // ... (isEditing block remains same, but we'll include it in the replace for context or leave it if untouched?)
-  // Wait, I need to make sure I don't delete the isEditing block. The user Instruction says "Integrate Modal...".
-  // I will just replace the "confirm" logic part and add the Modal JSX at the end.
-  // Actually, replace_file_content with a large block is safer to ensure order.
 
   if (isEditing) {
     return (
@@ -129,7 +122,7 @@ export function TaskCard({ task }: { task: Task }) {
           <div className="opacity-0 group-hover:opacity-100 transition-opacity flex gap-1">
             <button
               onClick={(e) => {
-                e.stopPropagation(); // prevent drag start
+                e.stopPropagation();
                 setIsEditing(true);
               }}
               className="p-1 hover:bg-neutral-800 rounded text-neutral-400 hover:text-white"

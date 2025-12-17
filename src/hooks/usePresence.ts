@@ -21,7 +21,6 @@ export function usePresence(
 
     const myRef = ref(rtdb, `presence/${user.uid}`);
 
-    // online yaz
     set(myRef, {
       uid: user.uid,
       email: user.email ?? null,
@@ -29,7 +28,6 @@ export function usePresence(
       lastSeen: serverTimestamp(),
     });
 
-    // disconnect olunca offline yaz (kritik)
     onDisconnect(myRef).set({
       uid: user.uid,
       email: user.email ?? null,
@@ -37,7 +35,6 @@ export function usePresence(
       lastSeen: serverTimestamp(),
     });
 
-    // tüm presence’ı dinle → online count
     const allRef = ref(rtdb, "presence");
     const unsub = onValue(allRef, (snap) => {
       const val = snap.val() as Record<string, PresenceUser> | null;

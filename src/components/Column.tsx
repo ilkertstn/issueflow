@@ -15,7 +15,6 @@ export function Column({
   status: TaskStatus;
   tasks: Task[];
 }) {
-  /* Define status-specific accents using a helper or map */
   const statusStyles: Record<TaskStatus, string> = {
     todo: "border-t-slate-500 bg-slate-800/20",
     doing: "border-t-blue-500 bg-blue-900/10",

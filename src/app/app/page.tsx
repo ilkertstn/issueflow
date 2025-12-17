@@ -7,6 +7,7 @@ import { auth } from "@/lib/firebase";
 import { useAuth } from "@/hooks/useAuth";
 import { addTask, listenTasks, updateTaskStatus } from "@/lib/tasks";
 import { Task, TaskPriority, TaskStatus } from "@/types/task";
+import { useRemoteFlags } from "@/hooks/useRemoteFlags";
 import {
   DndContext,
   DragEndEvent,
@@ -15,6 +16,8 @@ import {
   useSensor,
   useSensors,
 } from "@dnd-kit/core";
+import { BoardSkeleton } from "@/components/BoardSkeleton";
+import { MaintenanceScreen } from "@/components/MaintenanceScreen";
 import { Column } from "@/components/Column";
 import { TaskCard } from "@/components/TaskCard";
 import { usePresence } from "@/hooks/usePresence";
@@ -22,10 +25,11 @@ import { usePresence } from "@/hooks/usePresence";
 export default function AppPage() {
   const router = useRouter();
   const { user, loading } = useAuth();
-
+  const { maintenance, flagsLoading } = useRemoteFlags();
   const [title, setTitle] = useState("");
   const [priority, setPriority] = useState<TaskPriority>("medium");
   const [tasks, setTasks] = useState<Task[]>([]);
+  const [tasksLoading, setTasksLoading] = useState(true);
   const [activeId, setActiveId] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const sensors = useSensors(
@@ -45,7 +49,10 @@ export default function AppPage() {
 
   useEffect(() => {
     if (!user) return;
-    const unsub = listenTasks(user.uid, setTasks);
+    const unsub = listenTasks(user.uid, (newTasks) => {
+      setTasks(newTasks);
+      setTasksLoading(false);
+    });
     return () => unsub();
   }, [user]);
 
@@ -63,16 +70,20 @@ export default function AppPage() {
     user ? { uid: user.uid, email: user.email } : null
   );
 
-  if (loading) return <div className="p-6">Loading...</div>;
+  if (loading) return <BoardSkeleton />;
   if (!user) return null;
+
+  if (flagsLoading) return <div className="p-6">Config yükleniyor...</div>;
+  if (maintenance) return <MaintenanceScreen />;
+
+  if (tasksLoading) return <BoardSkeleton />;
 
   return (
     <main className="min-h-screen p-6 max-w-7xl mx-auto">
-      {/* Header & Controls Panel */}
       <div className="rounded-3xl border border-white/10 bg-white/5 backdrop-blur-xl p-6 mb-8 shadow-2xl">
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
           <div>
-            <h1 className="text-3xl font-bold bg-gradient-to-r from-white to-neutral-400 bg-clip-text text-transparent">
+            <h1 className="text-3xl font-bold bg-linear-to-r from-white to-neutral-400 bg-clip-text text-transparent">
               IssueFlow
             </h1>
             <div className="flex items-center gap-2 mt-2 text-sm text-neutral-400">
@@ -101,7 +112,6 @@ export default function AppPage() {
           </button>
         </div>
 
-        {/* Stats & Filter Bar (Visual only for now matching counts) */}
         <div className="mt-8 flex flex-wrap gap-2">
           {Object.entries(counts).map(([status, count]) => (
             <div
@@ -116,7 +126,6 @@ export default function AppPage() {
           ))}
         </div>
 
-        {/* New Task Form */}
         <form
           className="mt-6 flex flex-col md:flex-row gap-3"
           onSubmit={async (e) => {
@@ -140,10 +149,10 @@ export default function AppPage() {
               onChange={(e) => setTitle(e.target.value)}
             />
           </div>
-          
+
           <div className="flex gap-2">
             <select
-              className="h-12 rounded-xl border border-white/10 bg-black/40 px-4 text-sm text-neutral-300 focus:outline-none focus:ring-2 focus:ring-violet-500/50 cursor-pointer hover:bg-black/60 transition-colors"
+              className="h-12 rounded-xl border border-white/10 bg-black/40 px-4 text-sm text-neutral-300 focus:outline-none focus:ring-2 focus:ring-violet-500/50 cursor-pointer hover:bg-black/60 transition-colors "
               value={priority}
               onChange={(e) => setPriority(e.target.value as TaskPriority)}
             >
@@ -151,9 +160,9 @@ export default function AppPage() {
               <option value="medium">Medium Priority</option>
               <option value="high">High Priority</option>
             </select>
-            
-            <button 
-              className="h-12 px-6 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 text-white font-medium hover:from-violet-500 hover:to-indigo-500 focus:ring-2 focus:ring-violet-500/50 transition-all shadow-lg shadow-violet-900/20 disabled:opacity-50 disabled:cursor-not-allowed"
+
+            <button
+              className="h-12 px-6 rounded-xl bg-linear-to-r from-violet-600 to-indigo-600 text-white font-medium hover:from-violet-500 hover:to-indigo-500 focus:ring-2 focus:ring-violet-500/50 transition-all shadow-lg shadow-violet-900/20 disabled:opacity-50 disabled:cursor-not-allowed"
               disabled={saving}
             >
               {saving ? "Ekleniyor..." : "Oluştur"}
@@ -175,10 +184,8 @@ export default function AppPage() {
           const draggedTask = tasks.find((t) => t.id === active.id);
           if (!draggedTask) return;
 
-          // If dropped on a column (status)
           let targetStatus = over.id as TaskStatus;
 
-          // If dropped on another task, find that task's status
           if (!["todo", "doing", "done"].includes(targetStatus)) {
             const overTask = tasks.find((t) => t.id === over.id);
             if (overTask) {

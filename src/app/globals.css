@@ -20,7 +20,6 @@
 }
 
 body {
-  /* Classic, professional dark theme: Subtle Slate/Zinc Gradient */
   background: linear-gradient(to bottom right, #0f172a, #1e293b);
   background-attachment: fixed;
   color: var(--foreground);
