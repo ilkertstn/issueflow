@@ -1,36 +1,89 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# IssueFlow 🚀
 
-## Getting Started
+IssueFlow is a modern, real-time task management application built with **Next.js** and **Firebase**.  
+It provides a Kanban-style board with drag-and-drop interactions, real-time updates, online user presence, and feature flag management.
 
-First, run the development server:
+This project was built as a **production-oriented mini SaaS** to demonstrate modern frontend architecture and hands-on Firebase usage.
+
+🔗 **Live Demo:** https://issueflow-weld.vercel.app/login  
+🔗 **GitHub Repo:** https://github.com/ilkertstn/issueflow
+
+---
+
+## ✨ Features
+
+- 🔐 **Authentication**
+
+  - Email/Password authentication using Firebase Auth
+  - Protected routes and session handling
+
+- 🗂️ **Task Management**
+
+  - Create, update, delete tasks
+  - Task priority support (low / medium / high)
+  - Kanban board with **drag & drop** interaction
+
+- ⚡ **Real-time Updates**
+
+  - Real-time task synchronization with Cloud Firestore
+  - Live UI updates without page refresh
+
+- 🟢 **Online User Presence**
+
+  - Real-time online user counter using Firebase Realtime Database
+  - Automatic online/offline detection using `onDisconnect`
+
+- 🚧 **Maintenance Mode & Feature Flags**
+
+  - Global maintenance mode using Firebase Remote Config
+  - Feature toggling without redeploying the application
+
+- 🎨 **UI & UX**
+  - Responsive, mobile-first design
+  - Modern UI built with Tailwind CSS
+  - Skeleton loaders and smooth loading states
+
+---
+
+## 🛠 Tech Stack
+
+### Frontend
+
+- Next.js 16 (App Router)
+- React
+- TypeScript
+- Tailwind CSS
+- dnd-kit (Drag & Drop)
+
+### Firebase
+
+- Firebase Authentication
+- Cloud Firestore
+- Realtime Database
+- Firebase Remote Config
+
+### Testing & Tools
+
+- Cypress (E2E testing)
+- Git
+
+---
+
+## 🧠 Architecture Highlights
+
+- Component-based and scalable frontend architecture
+- Custom React hooks for business logic
+- Separation of concerns between UI, data, and services
+- Real-time data handling optimized for frontend performance
+- Feature flag–driven development using Firebase Remote Config
+
+---
+
+## 🚀 Getting Started
+
+### 1. Clone the repository
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+git clone https://github.com/ilkertstn/issueflow.git
+cd issueflow
 ```
-
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
-
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
