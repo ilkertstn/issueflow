@@ -6,10 +6,6 @@ import { getFirestore } from "firebase/firestore";
 import { getDatabase } from "firebase/database";
 import { getRemoteConfig } from "firebase/remote-config";
 
-if (typeof window === "undefined") {
-  throw new Error("firebase.client imported on server");
-}
-
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY!,
   authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN!,
