@@ -18,6 +18,7 @@ import {
 } from "@dnd-kit/core";
 import { BoardSkeleton } from "@/components/BoardSkeleton";
 import { MaintenanceScreen } from "@/components/MaintenanceScreen";
+import { LoadingSpinner } from "@/components/LoadingSpinner";
 import { Column } from "@/components/Column";
 import { TaskCard } from "@/components/TaskCard";
 import { usePresence } from "@/hooks/usePresence";
@@ -73,7 +74,7 @@ export default function AppPage() {
   if (loading) return <BoardSkeleton />;
   if (!user) return null;
 
-  if (flagsLoading) return <div className="p-6">Config yükleniyor...</div>;
+  if (flagsLoading) return <LoadingSpinner />;
   if (maintenance) return <MaintenanceScreen />;
 
   if (tasksLoading) return <BoardSkeleton />;
