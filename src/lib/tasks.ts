@@ -10,7 +10,7 @@ import {
   updateDoc,
   where,
 } from "firebase/firestore";
-import { db } from "@/lib/firebase";
+import { db } from "@/lib/firebase.client";
 import { Task, TaskPriority, TaskStatus } from "@/types/task";
 
 export function listenTasks(uid: string, cb: (tasks: Task[]) => void) {

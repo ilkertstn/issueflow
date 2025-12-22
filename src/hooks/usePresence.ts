@@ -8,7 +8,7 @@ import {
   onDisconnect,
   serverTimestamp,
 } from "firebase/database";
-import { rtdb } from "@/lib/firebase";
+import { rtdb } from "@/lib/firebase.client";
 import { PresenceUser } from "@/types/task";
 
 export function usePresence(
