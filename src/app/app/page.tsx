@@ -105,6 +105,7 @@ export default function AppPage() {
           <button
             className="px-4 py-2 rounded-xl text-sm font-medium text-neutral-400 hover:text-white hover:bg-white/5 transition-colors"
             onClick={async () => {
+              if (!auth) return;
               await signOut(auth);
               router.push("/login");
             }}
