@@ -45,7 +45,7 @@ export function usePresence(
     });
 
     return () => unsub();
-  }, [user?.uid, user?.email]);
+  }, [user]);
 
   return { onlineCount };
 }
